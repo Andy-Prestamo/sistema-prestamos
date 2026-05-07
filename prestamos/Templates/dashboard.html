@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema Financiero</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial;
+        }
+
+        body{
+            background:#0f172a;
+            color:white;
+        }
+
+        /* NAVBAR */
+
+        .navbar{
+
+            width:100%;
+            background:#111827;
+            padding:20px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            position:sticky;
+            top:0;
+            z-index:1000;
+        }
+
+        .navbar h2{
+            color:#38bdf8;
+        }
+
+        .menu{
+            display:flex;
+            gap:15px;
+        }
+
+        .menu a{
+
+            text-decoration:none;
+            color:white;
+            background:#1e293b;
+            padding:10px 15px;
+            border-radius:10px;
+            transition:0.3s;
+        }
+
+        .menu a:hover{
+            background:#334155;
+        }
+
+        /* MAIN */
+
+        .main{
+            padding:20px;
+        }
+
+        .title{
+            margin-bottom:25px;
+        }
+
+        /* CARDS */
+
+        .cards{
+
+            display:grid;
+
+            grid-template-columns:
+            repeat(auto-fit,minmax(220px,1fr));
+
+            gap:20px;
+        }
+
+        .card{
+
+            background:#1e293b;
+            padding:25px;
+            border-radius:20px;
+            box-shadow:0 0 10px rgba(0,0,0,0.3);
+
+        }
+
+        .card h3{
+            color:#94a3b8;
+            margin-bottom:10px;
+        }
+
+        .card p{
+            font-size:30px;
+            font-weight:bold;
+        }
+
+        /* CHART */
+
+        .chart-container{
+
+            background:#1e293b;
+            padding:20px;
+            border-radius:20px;
+            margin-top:30px;
+
+        }
+
+        /* TABLE */
+
+        .table-container{
+
+            background:#1e293b;
+            padding:20px;
+            border-radius:20px;
+            margin-top:30px;
+            overflow-x:auto;
+
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th{
+            background:#0f172a;
+            padding:15px;
+            text-align:left;
+        }
+
+        td{
+            padding:15px;
+            border-bottom:1px solid #334155;
+        }
+
+        tr:hover{
+            background:#334155;
+        }
+
+        /* MOBILE */
+
+        @media(max-width:768px){
+
+            .navbar{
+
+                flex-direction:column;
+                gap:15px;
+
+            }
+
+            .menu{
+                flex-wrap:wrap;
+                justify-content:center;
+            }
+
+            .card p{
+                font-size:24px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+
+    <div class="navbar">
+
+        <h2>💰 Financiera</h2>
+
+        <div class="menu">
+
+            <a href="/admin/prestamos/prestamo/">
+                💵 Prestamos
+            </a>
+
+            <a href="/admin/prestamos/pago/">
+                📅 Pagos
+            </a>
+
+            <a href="/admin/prestamos/cliente/">
+                👥 Clientes
+            </a>
+
+            <a href="/admin/">
+                ⚙️ Admin
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- MAIN -->
+
+    <div class="main">
+
+        <div class="title">
+
+            <h1>📊 Dashboard Financiero</h1>
+
+        </div>
+
+
+        <!-- CARDS -->
+
+        <div class="cards">
+
+            <div class="card">
+
+                <h3>Total Clientes</h3>
+
+                <p>{{ total_clientes }}</p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Total Prestado</h3>
+
+                <p>S/ {{ total_prestado }}</p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Ganancia Total</h3>
+
+                <p>S/ {{ ganancia_total }}</p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Saldo Pendiente</h3>
+
+                <p>S/ {{ pendiente }}</p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Capital Recuperado</h3>
+
+                <p>S/ {{ capital_recuperado }}</p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>Pagos de Hoy</h3>
+
+                <p>S/ {{ total_pagos_hoy }}</p>
+
+            </div>
+
+        </div>
+
+
+        <!-- GRAFICO -->
+
+        <div class="chart-container">
+
+            <h2>📈 Resumen Financiero</h2>
+
+            <br>
+
+            <canvas id="grafico"></canvas>
+
+        </div>
+
+
+        <!-- TABLA -->
+
+        <div class="table-container">
+
+            <h2>📅 Historial de Pagos</h2>
+
+            <br>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Cliente</th>
+
+                        <th>Monto</th>
+
+                        <th>Fecha</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for pago in pagos_hoy %}
+
+                    <tr>
+
+                        <td>
+                            {{ pago.prestamo.cliente.nombre }}
+                        </td>
+
+                        <td>
+                            S/ {{ pago.monto_pagado }}
+                        </td>
+
+                        <td>
+                            {{ pago.fecha_pago }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- CHART JS -->
+
+    <script>
+
+        const ctx = document.getElementById('grafico');
+
+        new Chart(ctx, {
+
+            type: 'bar',
+
+            data: {
+
+                labels: [
+
+                    'Prestado',
+                    'Ganancia',
+                    'Pendiente',
+                    'Recuperado'
+
+                ],
+
+                datasets: [{
+
+                    label:'Finanzas',
+
+                    data:[
+
+                    Number("{{ total_prestado }}"),
+                    Number("{{ ganancia_total }}"),
+                    Number("{{ pendiente }}"),
+                    Number("{{ capital_recuperado }}")
+
+                    ],
+                    borderWidth:1
+
+                }]
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
