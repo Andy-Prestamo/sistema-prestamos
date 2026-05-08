@@ -1,37 +1,69 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Sum, F
 from .models import Cliente, Prestamo, Pago
 from .forms import ClienteForm, PrestamoForm, PagoForm
-from django.db.models import Sum
 from django.utils import timezone
-import datetime
 
-# --- DASHBOARD ---
 def dashboard(request):
-    capital_en_calle = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('monto'))['monto__sum'] or 0
-    total_pendiente = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('saldo_pendiente'))['saldo_pendiente__sum'] or 0
-    total_cobrado = Pago.objects.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
+    # Capital neto (lo que salió del bolsillo)
+    capital = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('monto'))['monto__sum'] or 0
+    # Saldo pendiente total (Capital + Intereses por cobrar)
+    pendiente = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('saldo_pendiente'))['saldo_pendiente__sum'] or 0
+    # Intereses que se ganarán de los préstamos activos
+    ganancia_proyectada = Prestamo.objects.filter(estado_pagado=False).aggregate(
+        total=Sum(F('total_a_pagar') - F('monto'))
+    )['total'] or 0
     
     hoy = timezone.now().date()
-    inicio_dia = timezone.make_aware(datetime.datetime.combine(hoy, datetime.time.min))
-    fin_dia = timezone.make_aware(datetime.datetime.combine(hoy, datetime.time.max))
-    pagos_hoy = Pago.objects.filter(fecha_pago__range=(inicio_dia, fin_dia)).order_by('-fecha_pago')
+    pagos_hoy = Pago.objects.filter(fecha_pago__date=hoy).order_by('-fecha_pago')
+    total_hoy = pagos_hoy.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
 
     return render(request, 'dashboard.html', {
-        'pendiente': total_pendiente, 'capital_invertido': capital_en_calle,
-        'total_cobrado': total_cobrado, 'pagos_hoy': pagos_hoy,
+        'capital_invertido': capital,
+        'pendiente': pendiente,
+        'ganancia_proyectada': ganancia_proyectada,
+        'pagos_hoy': pagos_hoy,
+        'total_hoy': total_hoy
     })
 
-# --- GESTIÓN DE CLIENTES ---
 def clientes(request):
-    return render(request, 'clientes.html', {'clientes': Cliente.objects.all()})
+    clientes = Cliente.objects.all()
+    return render(request, 'clientes.html', {'clientes': clientes})
 
 def crear_cliente(request):
-    form = ClienteForm(request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect('clientes')
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.save(): return redirect('clientes')
+    else: form = ClienteForm()
     return render(request, 'formulario.html', {'form': form, 'titulo': 'Nuevo Cliente'})
 
+def historial_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    prestamos = Prestamo.objects.filter(cliente=cliente).order_by('-fecha_inicio')
+    pagos = Pago.objects.filter(prestamo__cliente=cliente).order_by('-fecha_pago')
+    return render(request, 'detalle_cliente.html', {'cliente': cliente, 'prestamos': prestamos, 'pagos': pagos})
+
+def crear_prestamo(request):
+    if request.method == 'POST':
+        form = PrestamoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+    else:
+        form = PrestamoForm()
+    return render(request, 'formulario.html', {'form': form, 'titulo': 'Nuevo Préstamo'})
+
+def registrar_pago(request):
+    if request.method == 'POST':
+        form = PagoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+    else:
+        form = PagoForm()
+    return render(request, 'formulario.html', {'form': form, 'titulo': 'Registrar Pago'})
+
+# Funciones de edición y eliminación (opcionales pero recomendadas)
 def editar_cliente(request, pk):
     obj = get_object_or_404(Cliente, pk=pk)
     form = ClienteForm(request.POST or None, instance=obj)
@@ -46,29 +78,3 @@ def eliminar_cliente(request, pk):
         obj.delete()
         return redirect('clientes')
     return render(request, 'confirmar_eliminar.html', {'obj': obj})
-
-# --- GESTIÓN DE PRÉSTAMOS ---
-def prestamos_lista(request):
-    return render(request, 'prestamos.html', {'prestamos': Prestamo.objects.all().order_by('-fecha_inicio')})
-
-def crear_prestamo(request):
-    form = PrestamoForm(request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect('prestamos_lista')
-    return render(request, 'formulario.html', {'form': form, 'titulo': 'Nuevo Préstamo'})
-
-def eliminar_prestamo(request, pk):
-    obj = get_object_or_404(Prestamo, pk=pk)
-    if request.method == 'POST':
-        obj.delete()
-        return redirect('prestamos_lista')
-    return render(request, 'confirmar_eliminar.html', {'obj': obj})
-
-# --- GESTIÓN DE PAGOS ---
-def registrar_pago(request):
-    form = PagoForm(request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect('dashboard')
-    return render(request, 'formulario.html', {'form': form, 'titulo': 'Registrar Cobro'})
