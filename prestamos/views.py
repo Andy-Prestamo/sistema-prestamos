@@ -3,19 +3,19 @@ from django.db.models import Sum, F
 from .models import Cliente, Prestamo, Pago
 from .forms import ClienteForm, PrestamoForm, PagoForm
 from django.utils import timezone
+from datetime import datetime, time
 
 def dashboard(request):
-    # Capital neto (lo que salió del bolsillo)
+    # Capital e intereses
     capital = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('monto'))['monto__sum'] or 0
-    # Saldo pendiente total (Capital + Intereses por cobrar)
     pendiente = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('saldo_pendiente'))['saldo_pendiente__sum'] or 0
-    # Intereses que se ganarán de los préstamos activos
     ganancia_proyectada = Prestamo.objects.filter(estado_pagado=False).aggregate(
         total=Sum(F('total_a_pagar') - F('monto'))
     )['total'] or 0
     
-    hoy = timezone.now().date()
-    pagos_hoy = Pago.objects.filter(fecha_pago__date=hoy).order_by('-fecha_pago')
+    # Fix para SQLite: Filtrar por rango de tiempo en lugar de __date
+    hoy_inicio = timezone.make_aware(datetime.combine(timezone.now().date(), time.min))
+    pagos_hoy = Pago.objects.filter(fecha_pago__gte=hoy_inicio).order_by('-fecha_pago')
     total_hoy = pagos_hoy.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
 
     return render(request, 'dashboard.html', {
@@ -33,8 +33,11 @@ def clientes(request):
 def crear_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
-        if form.save(): return redirect('clientes')
-    else: form = ClienteForm()
+        if form.is_valid():
+            form.save()
+            return redirect('clientes')
+    else:
+        form = ClienteForm()
     return render(request, 'formulario.html', {'form': form, 'titulo': 'Nuevo Cliente'})
 
 def historial_cliente(request, pk):
@@ -63,7 +66,6 @@ def registrar_pago(request):
         form = PagoForm()
     return render(request, 'formulario.html', {'form': form, 'titulo': 'Registrar Pago'})
 
-# Funciones de edición y eliminación (opcionales pero recomendadas)
 def editar_cliente(request, pk):
     obj = get_object_or_404(Cliente, pk=pk)
     form = ClienteForm(request.POST or None, instance=obj)
