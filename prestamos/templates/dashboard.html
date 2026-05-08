@@ -2,82 +2,69 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Préstamos Luchito</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Préstamos Luchito</title>
     <style>
-        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; padding: 20px; color: #333; margin: 0; }
-        .header { background: #1a73e8; color: white; padding: 30px; text-align: center; margin: -20px -20px 30px -20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1100px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; border-left: 8px solid #1a73e8; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .card h3 { margin: 0; color: #5f6368; font-size: 13px; text-transform: uppercase; }
-        .card p { font-size: 28px; font-weight: bold; margin: 10px 0; color: #202124; }
-        .acciones { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
-        .btn { padding: 15px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-azul { background: #1a73e8; } .btn-verde { background: #34a853; } .btn-gris { background: #5f6368; }
-        .contenedor-tabla { max-width: 1100px; margin: 30px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 15px; border-bottom: 1px solid #f1f3f4; text-align: left; }
-        th { background: #f8f9fa; color: #5f6368; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        .header { background: #1a73e8; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .contenedor { padding: 15px; max-width: 1200px; margin: auto; }
+        
+        /* Cuadrícula de tarjetas */
+        .resumen-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
+        @media (min-width: 768px) { .resumen-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #1a73e8; }
+        .card h3 { margin: 0; color: #5f6368; font-size: 0.9rem; text-transform: uppercase; }
+        .card p { margin: 10px 0 0; font-size: 1.8rem; font-weight: bold; color: #202124; }
+
+        .acciones-rapidas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+        .btn-accion { background: white; padding: 15px 5px; border-radius: 12px; text-decoration: none; text-align: center; font-weight: bold; font-size: 0.9rem; color: #1a73e8; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        .tabla-contenedor { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .tabla-header { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .tabla-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 350px; }
+        th, td { padding: 12px 15px; text-align: left; font-size: 0.9rem; }
+        th { color: #5f6368; border-bottom: 2px solid #eee; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>PRÉSTAMOS LUCHITO</h1>
-        <p>Panel de Control</p>
+        <h1 style="margin:0; font-size: 1.4rem;">🏦 Préstamos Luchito</h1>
     </div>
 
-    <div class="resumen">
-        <div class="card">
-            <h3>Capital en Calle</h3>
-            <p>S/ {{ capital_invertido }}</p>
+    <div class="contenedor">
+        <div class="resumen-grid">
+            <div class="card"><h3>Capital en Calle</h3><p>S/ {{ capital_invertido }}</p></div>
+            <div class="card" style="border-top-color: #34a853;"><h3>Ganancia Proyectada</h3><p>S/ {{ ganancia_proyectada }}</p></div>
+            <div class="card" style="border-top-color: #fbbc04;"><h3>Cobros de Hoy</h3><p>S/ {{ total_hoy }}</p></div>
         </div>
-        <div class="card" style="border-left-color: #fbbc04;">
-            <h3>Ganancia Proyectada</h3>
-            <p>S/ {{ ganancia_proyectada }}</p>
-        </div>
-        <div class="card" style="border-left-color: #34a853;">
-            <h3>Cobrado Hoy</h3>
-            <p>S/ {{ total_hoy }}</p>
-        </div>
-    </div>
 
-    <div class="acciones">
-        <a href="{% url 'crear_prestamo' %}" class="btn btn-azul">➕ NUEVO PRÉSTAMO</a>
-        <a href="{% url 'registrar_pago' %}" class="btn btn-verde">💰 REGISTRAR COBRO</a>
-        <a href="{% url 'clientes' %}" class="btn btn-gris">👥 CLIENTES</a>
-    </div>
+        <div class="acciones-rapidas">
+            <a href="{% url 'clientes' %}" class="btn-accion">👥 Clientes</a>
+            <a href="{% url 'crear_prestamo' %}" class="btn-accion">➕ Préstamo</a>
+            <a href="{% url 'registrar_pago' %}" class="btn-accion" style="grid-column: span 2; background: #1a73e8; color: white;">💰 Registrar Cobro</a>
+        </div>
 
-    <div class="contenedor-tabla">
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
-        <h2 style="margin: 0; color: #1a73e8;">Cobros del día</h2>
-        <span style="background: #e6f4ea; color: #1e8e3e; padding: 5px 15px; border-radius: 20px; font-weight: bold;">
-            Total hoy: S/ {{ total_hoy }}
-        </span>
+        <div class="tabla-contenedor">
+            <div class="tabla-header"><strong>Cobros Recientes</strong></div>
+            <div class="tabla-scroll">
+                <table>
+                    <thead><tr><th>Cliente</th><th>Monto</th><th>Hora</th></tr></thead>
+                    <tbody>
+                        {% for pago in pagos_hoy %}
+                        <tr>
+                            <td><strong>{{ pago.prestamo.cliente.nombre }}</strong></td>
+                            <td style="color: #1e8e3e;">S/ {{ pago.monto_pagado }}</td>
+                            <td>{{ pago.fecha_pago|date:"H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" style="text-align: center; padding: 20px; color: #999;">No hay cobros hoy</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <table>
-        <thead>
-            <tr>
-                <th>Cliente</th>
-                <th>Monto Cobrado</th>
-                <th>Hora</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for pago in pagos_hoy %}
-            <tr>
-                <td><strong>{{ pago.prestamo.cliente.nombre }}</strong></td>
-                <td style="color: #1e8e3e; font-weight: bold;">S/ {{ pago.monto_pagado }}</td>
-                <td>{{ pago.fecha_pago|date:"H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3" style="text-align: center; color: #999; padding: 30px;">
-                    Aún no hay cobros registrados hoy.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
 </body>
 </html>

@@ -2,59 +2,48 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial - {{ cliente.nombre }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 15px; max-width: 900px; margin: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .header-cliente { border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px; }
-        .prestamo-box { background: #e8f0fe; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #1a73e8; }
-        .prestamo-box.pagado { background: #e6f4ea; border-left-color: #34a853; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #f8f9fa; color: #555; }
-        .btn-volver { text-decoration: none; color: #1a73e8; font-weight: bold; display: inline-block; margin-bottom: 20px; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+        .header { background: #5f6368; color: white; padding: 15px; text-align: center; }
+        .contenedor { padding: 15px; max-width: 800px; margin: auto; }
+        .info-cliente { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border-left: 8px solid #1a73e8; }
+        .prestamo-box { background: #e8f0fe; padding: 15px; border-radius: 12px; margin-bottom: 10px; font-size: 0.9rem; }
+        .pago-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; background: white; }
+        .btn-volver { color: white; text-decoration: none; position: absolute; left: 15px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <a href="{% url 'clientes' %}" class="btn-volver">← Volver a la lista</a>
-        <div class="header-cliente">
-            <h1>👤 {{ cliente.nombre }}</h1>
-            <p>DNI: {{ cliente.dni }} | Teléfono: {{ cliente.telefono }}</p>
+    <div class="header">
+        <a href="{% url 'clientes' %}" class="btn-volver">⬅</a>
+        <h1 style="margin:0; font-size: 1.2rem;">Detalle del Cliente</h1>
+    </div>
+    <div class="contenedor">
+        <div class="info-cliente">
+            <h2 style="margin:0;">{{ cliente.nombre }}</h2>
+            <p style="margin:5px 0; color: #666;">📞 {{ cliente.telefono }}</p>
         </div>
 
-        <h3>Resumen de Préstamos</h3>
+        <h3 style="font-size: 1rem; color: #555;">Resumen de Deuda</h3>
         {% for p in prestamos %}
-        <div class="prestamo-box {% if p.estado_pagado %}pagado{% endif %}">
-            <strong>Fecha:</strong> {{ p.fecha_inicio|date:"d/m/Y" }} | 
-            <strong>Préstamo Inicial:</strong> S/ {{ p.monto }} | 
-            <strong>Total con Interés:</strong> S/ {{ p.total_a_pagar }} | 
-            <span style="color: #d93025; font-weight: bold;">SALDO ACTUAL: S/ {{ p.saldo_pendiente }}</span>
+        <div class="prestamo-box">
+            <div><strong>Monto:</strong> S/ {{ p.monto }} ({{ p.interes_porcentaje }}%)</div>
+            <div style="color: #d93025; font-weight: bold; font-size: 1.1rem; margin-top: 5px;">Debe: S/ {{ p.saldo_pendiente }}</div>
         </div>
-        {% empty %}
-        <p>No tiene préstamos registrados.</p>
         {% endfor %}
 
-        <h3>Historial de Pagos (Cobros realizados)</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha y Hora</th>
-                    <th>Monto Cobrado</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for pago in pagos %}
-                <tr>
-                    <td>{{ pago.fecha_pago|date:"d/m/Y H:i" }}</td>
-                    <td><strong>S/ {{ pago.monto_pagado }}</strong></td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="2" style="text-align: center; color: #999;">Aún no se han registrado pagos para este cliente.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h3 style="font-size: 1rem; color: #555; margin-top: 25px;">Últimos Pagos</h3>
+        <div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            {% for pago in pagos %}
+            <div class="pago-item">
+                <span>{{ pago.fecha_pago|date:"d M, H:i" }}</span>
+                <strong style="color: #34a853;">+ S/ {{ pago.monto_pagado }}</strong>
+            </div>
+            {% empty %}
+            <p style="text-align:center; padding: 20px; color: #999;">Sin pagos registrados</p>
+            {% endfor %}
+        </div>
     </div>
 </body>
 </html>
