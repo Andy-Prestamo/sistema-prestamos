@@ -3,10 +3,10 @@ from django.db.models import Sum, F
 from .models import Cliente, Prestamo, Pago
 from .forms import ClienteForm, PrestamoForm, PagoForm
 from django.utils import timezone
-import datetime
+from datetime import datetime, time
 
 def dashboard(request):
-    # Préstamos que aún no terminan de pagarse
+    # Préstamos activos
     prestamos_activos = Prestamo.objects.filter(estado_pagado=False)
     
     capital = prestamos_activos.aggregate(Sum('monto'))['monto__sum'] or 0
@@ -14,12 +14,14 @@ def dashboard(request):
         total=Sum(F('total_a_pagar') - F('monto'))
     )['total'] or 0
     
-    # --- LÓGICA DE COBROS DE HOY (CORREGIDA) ---
-    hoy = timezone.now().date()
-    # Buscamos todos los pagos hechos desde que empezó el día de hoy
-    pagos_hoy = Pago.objects.filter(fecha_pago__date=hoy).order_by('-fecha_pago')
+    # --- FILTRO COMPATIBLE CON SQLITE ---
+    # En lugar de __date, usamos un rango: desde las 00:00:00 hasta ahora
+    hoy_inicio = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    hoy_fin = timezone.now().replace(hour=23, minute=59, second=59, microsecond=999999)
     
-    # Total de dinero que entró hoy al bolsillo
+    pagos_hoy = Pago.objects.filter(fecha_pago__range=(hoy_inicio, hoy_fin)).order_by('-fecha_pago')
+    
+    # Sumar los cobros del día
     total_cobrado_hoy = pagos_hoy.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
 
     return render(request, 'dashboard.html', {
@@ -29,12 +31,15 @@ def dashboard(request):
         'total_hoy': total_cobrado_hoy,
     })
 
-# ... el resto de funciones (historial_cliente, etc.) se mantienen igual ...
 def historial_cliente(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
     prestamos = Prestamo.objects.filter(cliente=cliente).order_by('-fecha_inicio')
     pagos = Pago.objects.filter(prestamo__cliente=cliente).order_by('-fecha_pago')
-    return render(request, 'detalle_cliente.html', {'cliente': cliente, 'prestamos': prestamos, 'pagos': pagos})
+    return render(request, 'detalle_cliente.html', {
+        'cliente': cliente, 
+        'prestamos': prestamos, 
+        'pagos': pagos
+    })
 
 def clientes(request):
     clientes = Cliente.objects.all()
