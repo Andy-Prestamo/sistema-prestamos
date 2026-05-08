@@ -6,18 +6,14 @@ from django.utils import timezone
 from datetime import datetime, time
 
 def dashboard(request):
-    # Capital que salió del bolsillo (Suma de montos originales de préstamos activos)
     capital = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('monto'))['monto__sum'] or 0
-    
-    # Saldo que falta cobrar actualmente
     pendiente = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('saldo_pendiente'))['saldo_pendiente__sum'] or 0
     
-    # GANANCIA CORREGIDA: Total a pagar menos el monto inicial (Intereses reales)
+    # Ganancia corregida: Total a pagar menos monto inicial
     ganancia_proyectada = Prestamo.objects.filter(estado_pagado=False).aggregate(
         total=Sum(F('total_a_pagar') - F('monto'))
     )['total'] or 0
     
-    # Pagos de hoy para la tabla del dashboard
     hoy_inicio = timezone.make_aware(datetime.combine(timezone.now().date(), time.min))
     pagos_hoy = Pago.objects.filter(fecha_pago__gte=hoy_inicio).order_by('-fecha_pago')
     total_hoy = pagos_hoy.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
@@ -32,9 +28,8 @@ def dashboard(request):
 
 def historial_cliente(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
-    # Obtenemos todos los préstamos (activos y pagados) para ver el historial completo
-    prestamos = Prestamo.objects.filter(cliente=cliente).order_of('-fecha_inicio')
-    # Obtenemos todos los pagos realizados por este cliente
+    # AQUÍ ESTÁ EL CAMBIO: order_by en lugar de order_of
+    prestamos = Prestamo.objects.filter(cliente=cliente).order_by('-fecha_inicio')
     pagos = Pago.objects.filter(prestamo__cliente=cliente).order_by('-fecha_pago')
     
     return render(request, 'detalle_cliente.html', {
