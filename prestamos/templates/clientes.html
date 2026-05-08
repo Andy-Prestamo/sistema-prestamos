@@ -2,28 +2,29 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Clientes - Préstamos Luchito</title>
+    <title>Clientes - Luchito</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #1a73e8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #1a73e8; color: white; }
-        .btn { padding: 8px 12px; text-decoration: none; border-radius: 5px; font-size: 14px; display: inline-block; }
-        .btn-azul { background: #1a73e8; color: white; }
-        .btn-rojo { background: #d93025; color: white; }
-        .btn-naranja { background: #f29900; color: white; }
-        .nav { margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h1 { color: #1a73e8; margin: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #5f6368; font-weight: 600; }
+        .btn { padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-block; }
+        .btn-nuevo { background: #1a73e8; color: white; }
+        .btn-edit { background: #fef7e0; color: #b06000; margin-right: 5px; }
+        .btn-delete { background: #fce8e6; color: #d93025; }
+        .btn-volver { color: #5f6368; text-decoration: none; margin-bottom: 20px; display: inline-block; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="nav">
-            <a href="/" class="btn btn-azul">🏠 Volver al Dashboard</a>
-            <a href="/admin/prestamos/cliente/add/" class="btn btn-naranja">➕ Nuevo Cliente</a>
+        <a href="/" class="btn-volver">← Volver al Dashboard</a>
+        <div class="header">
+            <h1>👥 Mis Clientes</h1>
+            <a href="{% url 'crear_cliente' %}" class="btn btn-nuevo">+ Nuevo Cliente</a>
         </div>
-        <h1>Gestión de Clientes</h1>
         <table>
             <thead>
                 <tr>
@@ -36,16 +37,16 @@
             <tbody>
                 {% for cliente in clientes %}
                 <tr>
-                    <td>{{ cliente.nombre }}</td>
+                    <td><strong>{{ cliente.nombre }}</strong></td>
                     <td>{{ cliente.dni }}</td>
                     <td>{{ cliente.telefono }}</td>
                     <td>
-                        <a href="/admin/prestamos/cliente/{{ cliente.id }}/change/" class="btn btn-naranja">✏️ Editar</a>
-                        <a href="/admin/prestamos/cliente/{{ cliente.id }}/delete/" class="btn btn-rojo">🗑️ Borrar</a>
+                        <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-edit">✏️ Editar</a>
+                        <a href="{% url 'eliminar_cliente' cliente.id %}" class="btn btn-delete">🗑️ Borrar</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4">No hay clientes registrados.</td></tr>
+                <tr><td colspan="4" style="text-align: center; color: #999;">No hay clientes registrados aún.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
