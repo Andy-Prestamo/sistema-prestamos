@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Clientes</title>
+    <style>
+        body { background: #f3f4f6; font-family: sans-serif; padding: 30px; font-size: 18px; }
+        .btn-volver { background: #4b5563; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        table { width: 100%; background: white; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { padding: 20px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f8fafc; color: #111; }
+    </style>
+</head>
+<body>
+    <a href="{% url 'dashboard' %}" class="btn-volver">← Volver al Inicio</a>
+    <h1>Lista de Clientes</h1>
+    <table>
+        <tr><th>Nombre del Cliente</th><th>DNI</th><th>Teléfono</th></tr>
+        {% for c in clientes %}
+        <tr><td>{{ c.nombre }}</td><td>{{ c.dni }}</td><td>{{ c.telefono }}</td></tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

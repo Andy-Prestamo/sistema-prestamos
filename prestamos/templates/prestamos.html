@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Préstamos</title>
+    <style>
+        body { background: #f3f4f6; font-family: sans-serif; padding: 30px; font-size: 18px; }
+        table { width: 100%; background: white; border-collapse: collapse; }
+        th, td { padding: 15px; border: 1px solid #ddd; }
+        .pendiente { color: #dc2626; font-weight: bold; background: #fee2e2; padding: 5px; border-radius: 4px; }
+        .pagado { color: #16a34a; font-weight: bold; background: #dcfce7; padding: 5px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <a href="{% url 'dashboard' %}" style="padding:10px; background:#eee; text-decoration:none;">← Volver</a>
+    <h1>Estado de los Préstamos</h1>
+    <table>
+        <tr><th>Cliente</th><th>Monto Original</th><th>Falta Pagar</th><th>Estado</th></tr>
+        {% for p in prestamos %}
+        <tr>
+            <td>{{ p.cliente.nombre }}</td>
+            <td>S/ {{ p.monto }}</td>
+            <td>S/ {{ p.saldo_pendiente }}</td>
+            <td>
+                <span class="{% if p.estado == 'pagado' %}pagado{% else %}pendiente{% endif %}">
+                    {{ p.estado|upper }}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
