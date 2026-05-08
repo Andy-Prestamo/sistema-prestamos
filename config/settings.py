@@ -85,6 +85,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ==========================================================
 # CONFIGURACIÓN DE LOGIN (ESTO ES LO QUE NECESITABAS)
 # ==========================================================
+# Esto le dice a Django dónde está tu pantalla de login realmente
+LOGIN_URL = 'login'
 # Al iniciar sesión, el sistema te manda al Dashboard
 LOGIN_REDIRECT_URL = 'dashboard'
 
