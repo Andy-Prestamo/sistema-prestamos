@@ -5,6 +5,7 @@ from .models import Cliente, Prestamo, Pago
 from .forms import ClienteForm, PrestamoForm, PagoForm
 from django.utils import timezone
 
+
 @login_required
 def dashboard(request):
     prestamos_activos = Prestamo.objects.filter(estado_pagado=False)
@@ -81,3 +82,22 @@ def eliminar_cliente(request, pk):
         obj.delete()
         return redirect('clientes')
     return render(request, 'confirmar_eliminar.html', {'obj': obj})
+
+@login_required
+def eliminar_pago(request, pago_id):
+    pago = get_object_or_404(Pago, id=pago_id)
+    prestamo = pago.prestamo
+    cliente_pk = prestamo.cliente.pk
+    
+    # Revertimos el saldo sumando el monto del pago eliminado
+    prestamo.saldo_pendiente += pago.monto_pagado
+    
+    # Si el préstamo estaba marcado como pagado (True), lo volvemos a poner pendiente (False)
+    if prestamo.saldo_pendiente > 0:
+        prestamo.estado_pagado = False
+        
+    prestamo.save()
+    pago.delete()
+    
+    # Redirige de vuelta al historial del cliente
+    return redirect('historial_cliente', pk=cliente_pk)

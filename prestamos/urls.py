@@ -10,4 +10,6 @@ urlpatterns = [
     path('clientes/historial/<int:pk>/', views.historial_cliente, name='historial_cliente'),
     path('prestamos/nuevo/', views.crear_prestamo, name='crear_prestamo'),
     path('pagos/registrar/', views.registrar_pago, name='registrar_pago'),
+    # NUEVA RUTA PARA ELIMINAR PAGOS
+    path('pagos/eliminar/<int:pago_id>/', views.eliminar_pago, name='eliminar_pago'),
 ]

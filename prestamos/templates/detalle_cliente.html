@@ -34,16 +34,25 @@
         {% endfor %}
 
         <h3 style="font-size: 1rem; color: #555; margin-top: 25px;">Últimos Pagos</h3>
-        <div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-            {% for pago in pagos %}
-            <div class="pago-item">
-                <span>{{ pago.fecha_pago|date:"d M, H:i" }}</span>
-                <strong style="color: #34a853;">+ S/ {{ pago.monto_pagado }}</strong>
-            </div>
-            {% empty %}
-            <p style="text-align:center; padding: 20px; color: #999;">Sin pagos registrados</p>
-            {% endfor %}
+<div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+    {% for pago in pagos %}
+    <div class="pago-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
+        <span>{{ pago.fecha_pago|date:"d M, H:i" }}</span>
+        
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <strong style="color: #34a853;">+ S/ {{ pago.monto_pagado }}</strong>
+            
+            <a href="{% url 'eliminar_pago' pago.id %}" 
+               onclick="return confirm('¿Borrar este pago? El monto de S/ {{ pago.monto_pagado }} se sumará de nuevo a la deuda.')"
+               style="text-decoration: none; font-size: 1.1rem; cursor: pointer;">
+               🗑️
+            </a>
         </div>
+    </div>
+    {% empty %}
+    <p style="text-align:center; padding: 20px; color: #999;">Sin pagos registrados</p>
+    {% endfor %}
+</div>
     </div>
 </body>
 </html>
