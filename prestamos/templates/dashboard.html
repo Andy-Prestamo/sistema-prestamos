@@ -33,6 +33,13 @@
         <h1 style="margin:0; font-size: 1.4rem;">🏦 Préstamos Luchito</h1>
     </div>
 
+    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" style="background:none; border:none; color:white; cursor:pointer; font-weight:bold;">
+        🚪 Cerrar Sesión
+    </button>
+    </form>
+
     <div class="contenedor">
         <div class="resumen-grid">
             <div class="card"><h3>Capital en Calle</h3><p>S/ {{ capital_invertido }}</p></div>
