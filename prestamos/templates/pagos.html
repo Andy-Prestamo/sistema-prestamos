@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial de Pagos</title>
+    <style>
+        body { background: #f3f4f6; font-family: sans-serif; padding: 30px; font-size: 18px; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .btn-volver { background: #4b5563; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        table { width: 100%; background: white; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { padding: 20px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f8fafc; }
+        .monto { font-weight: bold; color: #059669; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Historial de Cobros Realizados</h1>
+        <a href="{% url 'dashboard' %}" class="btn-volver">← Volver al Inicio</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha de Cobro</th>
+                <th>Cliente</th>
+                <th>Monto Recibido</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pago in pagos %}
+            <tr>
+                <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
+                <td>{{ pago.prestamo.cliente.nombre }}</td>
+                <td class="monto">S/ {{ pago.monto_pagado }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No se han registrado pagos aún.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

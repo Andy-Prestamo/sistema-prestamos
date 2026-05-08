@@ -2,54 +2,66 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Control - Préstamos</title>
+    <title>Préstamos Luchito</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { background-color: #f3f4f6; color: #111; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
-        .header { background: #1e40af; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 8px solid #1e40af; }
-        .card h2 { margin: 0; font-size: 18px; color: #4b5563; text-transform: uppercase; }
-        .card p { margin: 10px 0 0; font-size: 32px; font-weight: bold; color: #111; }
-        .nav-buttons { margin-top: 30px; display: flex; gap: 15px; justify-content: center; }
-        .btn { background: #1e40af; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 18px; }
-        .btn-verde { background: #059669; }
-        table { width: 100%; background: white; margin-top: 30px; border-collapse: collapse; border-radius: 10px; overflow: hidden; font-size: 18px; }
-        th { background: #374151; color: white; padding: 15px; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #e5e7eb; }
-        tr:nth-child(even) { background: #f9fafb; }
+        body { background: #f4f7f6; font-family: 'Arial', sans-serif; padding: 20px; color: #333; }
+        .header { background: #004a99; color: white; padding: 30px; text-align: center; border-radius: 15px; margin-bottom: 20px; }
+        .resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; border-left: 10px solid #004a99; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card h3 { margin: 0; color: #666; font-size: 16px; text-transform: uppercase; }
+        .card p { font-size: 35px; font-weight: bold; margin: 10px 0; }
+        .acciones { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        .btn { padding: 20px 40px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 20px; color: white; transition: 0.3s; }
+        .btn-azul { background: #004a99; }
+        .btn-verde { background: #28a745; }
+        .btn-gris { background: #6c757d; }
+        table { width: 100%; background: white; margin-top: 30px; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #eee; }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <h1>SISTEMA DE PRÉSTAMOS - PAPÁ</h1>
+        <h1>PRÉSTAMOS LUCHITO</h1>
+        <p>Bienvenido, Papá</p>
     </div>
 
-    <div class="grid">
-        <div class="card"><h2>Clientes Totales</h2><p>{{ total_clientes }}</p></div>
-        <div class="card" style="border-left-color: #2563eb;"><h2>Total Prestado</h2><p>S/ {{ total_prestado }}</p></div>
-        <div class="card" style="border-left-color: #059669;"><h2>Tu Ganancia</h2><p>S/ {{ ganancia_total }}</p></div>
-        <div class="card" style="border-left-color: #dc2626;"><h2>Deuda en la Calle</h2><p>S/ {{ pendiente }}</p></div>
-        <div class="card" style="border-left-color: #fbbf24;"><h2>Capital Recuperado</h2><p>S/ {{ capital_recuperado }}</p></div>
+    <div class="resumen">
+        <div class="card">
+            <h3>Dinero en la calle (Por cobrar)</h3>
+            <p>S/ {{ pendiente }}</p>
+        </div>
+        <div class="card" style="border-left-color: #28a745;">
+            <h3>Total Cobrado</h3>
+            <p>S/ {{ total_cobrado }}</p>
+        </div>
     </div>
 
-    <div class="nav-buttons">
-        <a href="{% url 'clientes' %}" class="btn">Ver Clientes</a>
-        <a href="{% url 'prestamos' %}" class="btn">Ver Préstamos</a>
-        <a href="{% url 'pagos' %}" class="btn btn-verde">Ver Pagos Realizados</a>
+    <div class="acciones">
+        <a href="/admin/prestamos/prestamo/add/" class="btn btn-azul">➕ NUEVO PRÉSTAMO</a>
+        <a href="/admin/prestamos/pago/add/" class="btn btn-verde">💰 REGISTRAR COBRO</a>
+        <a href="{% url 'clientes' %}" class="btn btn-gris">👥 CLIENTES</a>
     </div>
 
-    <h2>Pagos recibidos hoy</h2>
+    <h2>Cobros recibidos hoy</h2>
     <table>
         <thead>
-            <tr><th>Cliente</th><th>Monto</th><th>Fecha</th></tr>
+            <tr><th>Cliente</th><th>Monto</th><th>Hora</th></tr>
         </thead>
         <tbody>
             {% for pago in pagos_hoy %}
-            <tr><td>{{ pago.prestamo.cliente.nombre }}</td><td>S/ {{ pago.monto_pagado }}</td><td>{{ pago.fecha_pago }}</td></tr>
+            <tr>
+                <td>{{ pago.prestamo.cliente.nombre }}</td>
+                <td><strong>S/ {{ pago.monto_pagado }}</strong></td>
+                <td>{{ pago.fecha_pago|time:"H:i" }}</td>
+            </tr>
             {% empty %}
-            <tr><td colspan="3">No hay pagos registrados hoy.</td></tr>
+            <tr><td colspan="3">Aún no hay cobros hoy.</td></tr>
             {% endfor %}
         </tbody>
     </table>
+
 </body>
 </html>

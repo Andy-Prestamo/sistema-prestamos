@@ -1,36 +1,34 @@
 from django.shortcuts import render
+from .models import Cliente, Prestamo, Pago
 from django.db.models import Sum
 from django.utils.timezone import now
-from .models import Cliente, Prestamo, Pago
 
 def dashboard(request):
-    total_clientes = Cliente.objects.count()
-    total_prestado = Prestamo.objects.aggregate(total=Sum('monto'))['total'] or 0
-    ganancia_total = Prestamo.objects.aggregate(total=Sum('ganancia'))['total'] or 0
-    pendiente = Prestamo.objects.aggregate(total=Sum('saldo_pendiente'))['total'] or 0
-    capital_recuperado = total_prestado + ganancia_total - pendiente
-    pagos_hoy = Pago.objects.filter(fecha_pago=now().date())
-    total_pagos_hoy = pagos_hoy.aggregate(total=Sum('monto_pagado'))['total'] or 0
+    # Dinero que tu papá ha prestado (Capital puro)
+    capital_en_calle = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('monto'))['monto__sum'] or 0
+    
+    # Lo que falta cobrar (Capital + Intereses pendientes)
+    total_pendiente = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('saldo_pendiente'))['saldo_pendiente__sum'] or 0
+    
+    # Ganancia cobrada (Basado en pagos recibidos)
+    # Para simplificar: Ganancia = Total Cobrado - Capital retornado (puedes ajustarlo luego)
+    total_cobrado = Pago.objects.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
+
+    pagos_hoy = Pago.objects.filter(fecha_pago__date=now().date())
 
     context = {
-        'total_clientes': total_clientes,
-        'total_prestado': total_prestado,
-        'ganancia_total': ganancia_total,
-        'pendiente': pendiente,
-        'capital_recuperado': capital_recuperado,
-        'total_pagos_hoy': total_pagos_hoy,
+        'pendiente': total_pendiente,
+        'capital_invertido': capital_en_calle,
+        'total_cobrado': total_cobrado,
         'pagos_hoy': pagos_hoy,
     }
     return render(request, 'dashboard.html', context)
 
 def clientes(request):
-    clientes_list = Cliente.objects.all().order_by('nombre')
-    return render(request, 'clientes.html', {'clientes': clientes_list})
+    return render(request, 'clientes.html', {'clientes': Cliente.objects.all()})
 
 def pagos(request):
-    pagos_list = Pago.objects.all().order_by('-fecha_pago')
-    return render(request, 'pagos.html', {'pagos': pagos_list})
+    return render(request, 'pagos.html', {'pagos': Pago.objects.all().order_by('-fecha_pago')})
 
 def prestamos_lista(request):
-    prestamos_list = Prestamo.objects.all().order_by('-fecha')
-    return render(request, 'prestamos.html', {'prestamos': prestamos_list})
+    return render(request, 'prestamos.html', {'prestamos': Prestamo.objects.all()})
