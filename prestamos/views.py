@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_ some_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cliente, Prestamo, Pago
 from .forms import ClienteForm, PrestamoForm, PagoForm
 from django.db.models import Sum
