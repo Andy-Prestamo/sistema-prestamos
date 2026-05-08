@@ -6,14 +6,18 @@ from django.utils import timezone
 from datetime import datetime, time
 
 def dashboard(request):
-    # Capital e intereses
+    # Capital que salió del bolsillo (Suma de montos originales de préstamos activos)
     capital = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('monto'))['monto__sum'] or 0
+    
+    # Saldo que falta cobrar actualmente
     pendiente = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('saldo_pendiente'))['saldo_pendiente__sum'] or 0
+    
+    # GANANCIA CORREGIDA: Total a pagar menos el monto inicial (Intereses reales)
     ganancia_proyectada = Prestamo.objects.filter(estado_pagado=False).aggregate(
         total=Sum(F('total_a_pagar') - F('monto'))
     )['total'] or 0
     
-    # Fix para SQLite: Filtrar por rango de tiempo en lugar de __date
+    # Pagos de hoy para la tabla del dashboard
     hoy_inicio = timezone.make_aware(datetime.combine(timezone.now().date(), time.min))
     pagos_hoy = Pago.objects.filter(fecha_pago__gte=hoy_inicio).order_by('-fecha_pago')
     total_hoy = pagos_hoy.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
@@ -24,6 +28,19 @@ def dashboard(request):
         'ganancia_proyectada': ganancia_proyectada,
         'pagos_hoy': pagos_hoy,
         'total_hoy': total_hoy
+    })
+
+def historial_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    # Obtenemos todos los préstamos (activos y pagados) para ver el historial completo
+    prestamos = Prestamo.objects.filter(cliente=cliente).order_of('-fecha_inicio')
+    # Obtenemos todos los pagos realizados por este cliente
+    pagos = Pago.objects.filter(prestamo__cliente=cliente).order_by('-fecha_pago')
+    
+    return render(request, 'detalle_cliente.html', {
+        'cliente': cliente,
+        'prestamos': prestamos,
+        'pagos': pagos
     })
 
 def clientes(request):
@@ -39,12 +56,6 @@ def crear_cliente(request):
     else:
         form = ClienteForm()
     return render(request, 'formulario.html', {'form': form, 'titulo': 'Nuevo Cliente'})
-
-def historial_cliente(request, pk):
-    cliente = get_object_or_404(Cliente, pk=pk)
-    prestamos = Prestamo.objects.filter(cliente=cliente).order_by('-fecha_inicio')
-    pagos = Pago.objects.filter(prestamo__cliente=cliente).order_by('-fecha_pago')
-    return render(request, 'detalle_cliente.html', {'cliente': cliente, 'prestamos': prestamos, 'pagos': pagos})
 
 def crear_prestamo(request):
     if request.method == 'POST':

@@ -5,35 +5,44 @@
     <title>Historial - {{ cliente.nombre }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
-        .card { background: white; padding: 25px; border-radius: 15px; max-width: 800px; margin: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .info-cliente { border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
-        .deuda { background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; font-weight: bold; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 15px; max-width: 900px; margin: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header-cliente { border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-bottom: 20px; }
+        .prestamo-box { background: #e8f0fe; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #1a73e8; }
+        .prestamo-box.pagado { background: #e6f4ea; border-left-color: #34a853; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-        .btn-volver { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #1a73e8; font-weight: bold; }
+        th { background: #f8f9fa; color: #555; }
+        .btn-volver { text-decoration: none; color: #1a73e8; font-weight: bold; display: inline-block; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <a href="{% url 'clientes' %}" class="btn-volver">← Volver a Clientes</a>
-        <div class="info-cliente">
-            <h1>{{ cliente.nombre }}</h1>
-            <p>DNI: {{ cliente.dni }} | Tel: {{ cliente.telefono }}</p>
+        <a href="{% url 'clientes' %}" class="btn-volver">← Volver a la lista</a>
+        <div class="header-cliente">
+            <h1>👤 {{ cliente.nombre }}</h1>
+            <p>DNI: {{ cliente.dni }} | Teléfono: {{ cliente.telefono }}</p>
         </div>
 
-        <h3>Estado de Préstamos</h3>
+        <h3>Resumen de Préstamos</h3>
         {% for p in prestamos %}
-        <div class="deuda">
-            Monto: S/ {{ p.monto }} | Saldo Pendiente: S/ {{ p.saldo_pendiente }} 
-            {% if p.estado_pagado %} <span style="color: green;">(PAGADO)</span> {% endif %}
+        <div class="prestamo-box {% if p.estado_pagado %}pagado{% endif %}">
+            <strong>Fecha:</strong> {{ p.fecha_inicio|date:"d/m/Y" }} | 
+            <strong>Préstamo Inicial:</strong> S/ {{ p.monto }} | 
+            <strong>Total con Interés:</strong> S/ {{ p.total_a_pagar }} | 
+            <span style="color: #d93025; font-weight: bold;">SALDO ACTUAL: S/ {{ p.saldo_pendiente }}</span>
         </div>
+        {% empty %}
+        <p>No tiene préstamos registrados.</p>
         {% endfor %}
 
-        <h3>Historial de Pagos</h3>
+        <h3>Historial de Pagos (Cobros realizados)</h3>
         <table>
             <thead>
-                <tr><th>Fecha y Hora</th><th>Monto Pagado</th></tr>
+                <tr>
+                    <th>Fecha y Hora</th>
+                    <th>Monto Cobrado</th>
+                </tr>
             </thead>
             <tbody>
                 {% for pago in pagos %}
@@ -42,7 +51,7 @@
                     <td><strong>S/ {{ pago.monto_pagado }}</strong></td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="2">No hay pagos registrados.</td></tr>
+                <tr><td colspan="2" style="text-align: center; color: #999;">Aún no se han registrado pagos para este cliente.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
