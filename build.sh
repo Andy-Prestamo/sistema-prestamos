@@ -10,3 +10,6 @@ python manage.py collectstatic --no-input
 
 # Aplicar cualquier cambio en la estructura de la base de datos
 python manage.py migrate
+
+# AGREGA ESTA LÍNEA SOLO ESTA VEZ
+python crear_usuario.py

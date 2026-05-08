@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -55,12 +56,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Base de datos SQLite
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        # Pega aquí el código largo que copiaste de Neon
+        default='postgresql://neondb_owner:npg_iFdxBufK7zA9@ep-winter-smoke-apwblxuy.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require',
+        conn_max_age=600,
+    )
 }
-
 # Validación de contraseñas
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
