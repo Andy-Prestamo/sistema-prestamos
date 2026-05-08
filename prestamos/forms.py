@@ -14,12 +14,13 @@ class ClienteForm(forms.ModelForm):
 class PrestamoForm(forms.ModelForm):
     class Meta:
         model = Prestamo
-        fields = ['cliente', 'monto', 'tipo_cuota', 'fecha_inicio']
+        # HEMOS QUITADO 'fecha_inicio' DE AQUÍ:
+        fields = ['cliente', 'monto', 'tipo_cuota'] 
         widgets = {
             'cliente': forms.Select(attrs={'class': 'form-control'}),
-            'monto': forms.NumberInput(attrs={'class': 'form-control'}),
+            'monto': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 100'}),
             'tipo_cuota': forms.Select(attrs={'class': 'form-control'}),
-            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            # Ya no necesitamos el widget de fecha_inicio aquí
         }
 
 class PagoForm(forms.ModelForm):
@@ -28,5 +29,5 @@ class PagoForm(forms.ModelForm):
         fields = ['prestamo', 'monto_pagado']
         widgets = {
             'prestamo': forms.Select(attrs={'class': 'form-control'}),
-            'monto_pagado': forms.NumberInput(attrs={'class': 'form-control'}),
+            'monto_pagado': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Monto a cobrar'}),
         }
