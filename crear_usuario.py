@@ -20,3 +20,4 @@ def crear_usuarios():
 
 if __name__ == '__main__':
     crear_usuarios()
+    # forzando build.
