@@ -48,23 +48,36 @@
     </div>
 
     <div class="contenedor-tabla">
-        <h2 style="padding: 20px; margin: 0; color: #1a73e8;">Cobros del día</h2>
-        <table>
-            <thead>
-                <tr><th>Cliente</th><th>Monto</th><th>Hora</th></tr>
-            </thead>
-            <tbody>
-                {% for pago in pagos_hoy %}
-                <tr>
-                    <td>{{ pago.prestamo.cliente.nombre }}</td>
-                    <td><strong>S/ {{ pago.monto_pagado }}</strong></td>
-                    <td>{{ pago.fecha_pago|date:"H:i" }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3" style="text-align: center; color: #999; padding: 20px;">No hay cobros registrados hoy.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
+        <h2 style="margin: 0; color: #1a73e8;">Cobros del día</h2>
+        <span style="background: #e6f4ea; color: #1e8e3e; padding: 5px 15px; border-radius: 20px; font-weight: bold;">
+            Total hoy: S/ {{ total_hoy }}
+        </span>
     </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Monto Cobrado</th>
+                <th>Hora</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pago in pagos_hoy %}
+            <tr>
+                <td><strong>{{ pago.prestamo.cliente.nombre }}</strong></td>
+                <td style="color: #1e8e3e; font-weight: bold;">S/ {{ pago.monto_pagado }}</td>
+                <td>{{ pago.fecha_pago|date:"H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align: center; color: #999; padding: 30px;">
+                    Aún no hay cobros registrados hoy.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 </body>
 </html>

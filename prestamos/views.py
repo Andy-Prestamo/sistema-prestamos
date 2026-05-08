@@ -3,40 +3,38 @@ from django.db.models import Sum, F
 from .models import Cliente, Prestamo, Pago
 from .forms import ClienteForm, PrestamoForm, PagoForm
 from django.utils import timezone
-from datetime import datetime, time
+import datetime
 
 def dashboard(request):
-    capital = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('monto'))['monto__sum'] or 0
-    pendiente = Prestamo.objects.filter(estado_pagado=False).aggregate(Sum('saldo_pendiente'))['saldo_pendiente__sum'] or 0
+    # Préstamos que aún no terminan de pagarse
+    prestamos_activos = Prestamo.objects.filter(estado_pagado=False)
     
-    # Ganancia corregida: Total a pagar menos monto inicial
-    ganancia_proyectada = Prestamo.objects.filter(estado_pagado=False).aggregate(
+    capital = prestamos_activos.aggregate(Sum('monto'))['monto__sum'] or 0
+    ganancia_proyectada = prestamos_activos.aggregate(
         total=Sum(F('total_a_pagar') - F('monto'))
     )['total'] or 0
     
-    hoy_inicio = timezone.make_aware(datetime.combine(timezone.now().date(), time.min))
-    pagos_hoy = Pago.objects.filter(fecha_pago__gte=hoy_inicio).order_by('-fecha_pago')
-    total_hoy = pagos_hoy.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
+    # --- LÓGICA DE COBROS DE HOY (CORREGIDA) ---
+    hoy = timezone.now().date()
+    # Buscamos todos los pagos hechos desde que empezó el día de hoy
+    pagos_hoy = Pago.objects.filter(fecha_pago__date=hoy).order_by('-fecha_pago')
+    
+    # Total de dinero que entró hoy al bolsillo
+    total_cobrado_hoy = pagos_hoy.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
 
     return render(request, 'dashboard.html', {
         'capital_invertido': capital,
-        'pendiente': pendiente,
         'ganancia_proyectada': ganancia_proyectada,
         'pagos_hoy': pagos_hoy,
-        'total_hoy': total_hoy
+        'total_hoy': total_cobrado_hoy,
     })
 
+# ... el resto de funciones (historial_cliente, etc.) se mantienen igual ...
 def historial_cliente(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
-    # AQUÍ ESTÁ EL CAMBIO: order_by en lugar de order_of
     prestamos = Prestamo.objects.filter(cliente=cliente).order_by('-fecha_inicio')
     pagos = Pago.objects.filter(prestamo__cliente=cliente).order_by('-fecha_pago')
-    
-    return render(request, 'detalle_cliente.html', {
-        'cliente': cliente,
-        'prestamos': prestamos,
-        'pagos': pagos
-    })
+    return render(request, 'detalle_cliente.html', {'cliente': cliente, 'prestamos': prestamos, 'pagos': pagos})
 
 def clientes(request):
     clientes = Cliente.objects.all()
