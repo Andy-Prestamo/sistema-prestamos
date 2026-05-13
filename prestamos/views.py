@@ -63,8 +63,16 @@ def registrar_pago(request):
         if form.is_valid():
             form.save()
             return redirect('dashboard')
-    form = PagoForm()
-    return render(request, 'formulario.html', {'form': form, 'titulo': 'Registrar Pago'})
+    else:
+        form = PagoForm()
+        # ESTO ES LO IMPORTANTE: 
+        # Filtramos para que solo aparezcan préstamos que NO estén pagados
+        form.fields['prestamo'].queryset = Prestamo.objects.filter(estado_pagado=False)
+        
+    return render(request, 'formulario.html', {
+        'form': form, 
+        'titulo': 'Registrar Pago'
+    })
 
 @login_required
 def editar_cliente(request, pk):
