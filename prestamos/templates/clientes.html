@@ -45,7 +45,7 @@
                 {% for cliente in clientes %}
                 <tr>
                     <td><strong>{{ cliente.nombre }}</strong></td>
-                    <td>{{ cliente.dni }}</td>
+                    <td>{{ cliente.lugar }}</td>
                     <td>{{ cliente.telefono }}</td>
                     <td>
                         <a href="{% url 'historial_cliente' cliente.id %}" class="btn btn-historial">📖 Ver Historial / Deuda</a>
