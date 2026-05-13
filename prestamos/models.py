@@ -4,7 +4,7 @@ from decimal import Decimal
 
 class Cliente(models.Model):
     nombre = models.CharField(max_length=100)
-    dni = models.CharField(max_length=20, unique=True)
+    lugar = models.CharField(max_length=100)
     telefono = models.CharField(max_length=20)
 
     def __str__(self):

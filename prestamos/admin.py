@@ -3,8 +3,8 @@ from .models import Cliente, Prestamo, Pago
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'dni', 'telefono')
-    search_fields = ('nombre', 'dni')
+    list_display = ('nombre', 'lugar', 'telefono')
+    search_fields = ('nombre', 'lugar')
 
 @admin.register(Prestamo)
 class PrestamoAdmin(admin.ModelAdmin):

@@ -4,7 +4,7 @@ from .models import Cliente, Prestamo, Pago
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
-        fields = ['nombre', 'dni', 'telefono']
+        fields = ['nombre', 'lugar', 'telefono']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre completo'}),
             'dni': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'DNI'}),
