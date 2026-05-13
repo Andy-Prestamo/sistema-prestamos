@@ -9,9 +9,45 @@
         .header { background: #5f6368; color: white; padding: 15px; text-align: center; }
         .contenedor { padding: 15px; max-width: 800px; margin: auto; }
         .info-cliente { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; border-left: 8px solid #1a73e8; }
-        .prestamo-box { background: #e8f0fe; padding: 15px; border-radius: 12px; margin-bottom: 10px; font-size: 0.9rem; }
-        .pago-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; background: white; }
+        
+        /* Caja principal de cada préstamo */
+        .prestamo-card { 
+            background: white; 
+            border-radius: 15px; 
+            margin-bottom: 25px; 
+            overflow: hidden; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .prestamo-header { 
+            background: #e8f0fe; 
+            padding: 15px; 
+            border-bottom: 1px solid #d2e3fc;
+        }
+        .debe-monto { 
+            color: #d93025; 
+            font-weight: bold; 
+            font-size: 1.2rem; 
+        }
+        
+        /* Estilo de los pagos dentro del préstamo */
+        .pago-lista { background: #fff; }
+        .pago-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 15px; 
+            border-bottom: 1px solid #f1f1f1; 
+            font-size: 0.9rem;
+        }
         .btn-volver { color: white; text-decoration: none; position: absolute; left: 15px; }
+        .badge-pagado { 
+            background: #ceead6; 
+            color: #0d652d; 
+            padding: 2px 8px; 
+            border-radius: 10px; 
+            font-size: 0.7rem; 
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -19,40 +55,58 @@
         <a href="{% url 'clientes' %}" class="btn-volver">⬅</a>
         <h1 style="margin:0; font-size: 1.2rem;">Detalle del Cliente</h1>
     </div>
+
     <div class="contenedor">
         <div class="info-cliente">
             <h2 style="margin:0;">{{ cliente.nombre }}</h2>
-            <p style="margin:5px 0; color: #666;">📞 {{ cliente.telefono }}</p>
+            <p style="margin:5px 0; color: #666;">📍 {{ cliente.lugar }}</p> <p style="margin:5px 0; color: #666;">📞 {{ cliente.telefono }}</p>
         </div>
 
-        <h3 style="font-size: 1rem; color: #555;">Resumen de Deuda</h3>
+        <h3 style="font-size: 1rem; color: #555; margin-bottom: 15px;">Préstamos y Pagos</h3>
+
         {% for p in prestamos %}
-        <div class="prestamo-box">
-            <div><strong>Monto:</strong> S/ {{ p.monto }} ({{ p.interes_porcentaje }}%)</div>
-            <div style="color: #d93025; font-weight: bold; font-size: 1.1rem; margin-top: 5px;">Debe: S/ {{ p.saldo_pendiente }}</div>
-        </div>
-        {% endfor %}
+        <div class="prestamo-card">
+            <div class="prestamo-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.8rem; color: #5f6368;">Inició: {{ p.fecha_inicio|date:"d M, Y" }}</span>
+                    {% if p.estado_pagado %}
+                        <span class="badge-pagado">TERMINADO</span>
+                    {% endif %}
+                </div>
+                <div style="margin-top: 5px;">
+                    <strong>Monto:</strong> S/ {{ p.monto }} ({{ p.interes_porcentaje }}%)
+                </div>
+                <div class="debe-monto">Debe: S/ {{ p.saldo_pendiente }}</div>
+            </div>
 
-        <h3 style="font-size: 1rem; color: #555; margin-top: 25px;">Últimos Pagos</h3>
-<div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-    {% for pago in pagos %}
-    <div class="pago-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee;">
-        <span>{{ pago.fecha_pago|date:"d M, H:i" }}</span>
-        
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <strong style="color: #34a853;">+ S/ {{ pago.monto_pagado }}</strong>
-            
-            <a href="{% url 'eliminar_pago' pago.id %}" 
-               onclick="return confirm('¿Borrar este pago? El monto de S/ {{ pago.monto_pagado }} se sumará de nuevo a la deuda.')"
-               style="text-decoration: none; font-size: 1.1rem; cursor: pointer;">
-               🗑️
-            </a>
+            <div class="pago-lista">
+                <div style="padding: 8px 15px; background: #fafafa; font-size: 0.8rem; color: #888; border-bottom: 1px solid #eee;">
+                    Pagos realizados a este préstamo:
+                </div>
+                
+                {% for pago in p.pago_set.all %}
+                <div class="pago-item">
+                    <span style="color: #666;">{{ pago.fecha_pago|date:"d M, H:i" }}</span>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <strong style="color: #34a853;">+ S/ {{ pago.monto_pagado }}</strong>
+                        
+                        <a href="{% url 'eliminar_pago' pago.id %}" 
+                           onclick="return confirm('¿Borrar este pago?')"
+                           style="text-decoration: none; font-size: 1.1rem;">
+                           🗑️
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="padding: 15px; text-align: center; color: #bbb; font-style: italic; font-size: 0.8rem;">
+                    Aún no hay pagos para este préstamo.
+                </div>
+                {% endfor %}
+            </div>
         </div>
-    </div>
-    {% empty %}
-    <p style="text-align:center; padding: 20px; color: #999;">Sin pagos registrados</p>
-    {% endfor %}
-</div>
+        {% empty %}
+        <p style="text-align:center; padding: 20px; color: #999;">El cliente no tiene préstamos.</p>
+        {% endfor %}
     </div>
 </body>
 </html>
