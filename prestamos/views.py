@@ -8,18 +8,34 @@ from django.utils import timezone
 
 @login_required
 def dashboard(request):
+    # --- MÉTRICAS DE DINERO EN LA CALLE (ACTUAL) ---
     prestamos_activos = Prestamo.objects.filter(estado_pagado=False)
-    capital = prestamos_activos.aggregate(Sum('monto'))['monto__sum'] or 0
-    ganancia_proyectada = prestamos_activos.aggregate(total=Sum(F('total_a_pagar') - F('monto')))['total'] or 0
-    
+    capital_en_calle = prestamos_activos.aggregate(Sum('monto'))['monto__sum'] or 0
+    ganancia_proyectada = prestamos_activos.aggregate(
+        total=Sum(F('total_a_pagar') - F('monto'))
+    )['total'] or 0
+
+    # --- MÉTRICAS DE CRECIMIENTO REAL (HISTÓRICO) ---
+    # 1. Total de todos los intereses cobrados de préstamos ya terminados
+    prestamos_pagados = Prestamo.objects.filter(estado_pagado=True)
+    ganancias_reales = prestamos_pagados.aggregate(
+        total=Sum(F('total_a_pagar') - F('monto'))
+    )['total'] or 0
+
+    # 2. Total de dinero que ha pasado por el sistema (Capital + Ganancias)
+    todos_los_pagos = Pago.objects.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
+
+    # --- MÉTRICAS DEL DÍA ---
     hoy_inicio = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     hoy_fin = timezone.now().replace(hour=23, minute=59, second=59, microsecond=999999)
     pagos_hoy = Pago.objects.filter(fecha_pago__range=(hoy_inicio, hoy_fin)).order_by('-fecha_pago')
     total_hoy = pagos_hoy.aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
 
     return render(request, 'dashboard.html', {
-        'capital_invertido': capital,
+        'capital_en_calle': capital_en_calle,
         'ganancia_proyectada': ganancia_proyectada,
+        'ganancias_reales': ganancias_reales, # <--- Nueva métrica
+        'total_recaudado_historico': todos_los_pagos, # <--- Nueva métrica
         'pagos_hoy': pagos_hoy,
         'total_hoy': total_hoy,
     })

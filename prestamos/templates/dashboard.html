@@ -6,7 +6,7 @@
     <title>Dashboard - Préstamos Luchito</title>
     <style>
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
-        .header { background: #1a73e8; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: #1a73e8; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: relative;}
         .contenedor { padding: 15px; max-width: 1200px; margin: auto; }
         
         /* Cuadrícula de tarjetas */
@@ -14,37 +14,56 @@
         @media (min-width: 768px) { .resumen-grid { grid-template-columns: repeat(3, 1fr); } }
 
         .card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #1a73e8; }
-        .card h3 { margin: 0; color: #5f6368; font-size: 0.9rem; text-transform: uppercase; }
-        .card p { margin: 10px 0 0; font-size: 1.8rem; font-weight: bold; color: #202124; }
+        .card h3 { margin: 0; color: #5f6368; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .card p { margin: 10px 0 0; font-size: 1.6rem; font-weight: bold; color: #202124; }
+
+        /* Tarjetas de Ganancia Real (Diferentes colores para distinguir) */
+        .card-ganancia { border-top-color: #9c27b0 !important; background: #f3e5f5; } /* Morado para dinero real */
+        .card-historico { border-top-color: #ff5722 !important; background: #fff3e0; } /* Naranja para flujo total */
 
         .acciones-rapidas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
         .btn-accion { background: white; padding: 15px 5px; border-radius: 12px; text-decoration: none; text-align: center; font-weight: bold; font-size: 0.9rem; color: #1a73e8; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        .tabla-contenedor { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .tabla-contenedor { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 20px;}
         .tabla-header { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .tabla-scroll { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 350px; }
         th, td { padding: 12px 15px; text-align: left; font-size: 0.9rem; }
         th { color: #5f6368; border-bottom: 2px solid #eee; }
+        
+        .logout-btn { background:none; border:none; color:white; cursor:pointer; font-weight:bold; position: absolute; right: 15px; top: 25px; font-size: 0.8rem;}
     </style>
 </head>
 <body>
     <div class="header">
         <h1 style="margin:0; font-size: 1.4rem;">🏦 Préstamos Luchito</h1>
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">🚪 Salir</button>
+        </form>
     </div>
 
-    <form action="{% url 'logout' %}" method="post" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit" style="background:none; border:none; color:white; cursor:pointer; font-weight:bold;">
-        🚪 Cerrar Sesión
-    </button>
-    </form>
-
     <div class="contenedor">
+        
+        <h2 style="font-size: 1rem; color: #5f6368; margin-bottom: 10px;">📊 Estado Actual (En la calle)</h2>
         <div class="resumen-grid">
-            <div class="card"><h3>Capital en Calle</h3><p>S/ {{ capital_invertido }}</p></div>
-            <div class="card" style="border-top-color: #34a853;"><h3>Ganancia Proyectada</h3><p>S/ {{ ganancia_proyectada }}</p></div>
+            <div class="card"><h3>Capital en Calle</h3><p>S/ {{ capital_en_calle }}</p></div>
+            <div class="card" style="border-top-color: #34a853;"><h3>Interés por Cobrar</h3><p>S/ {{ ganancia_proyectada }}</p></div>
             <div class="card" style="border-top-color: #fbbc04;"><h3>Cobros de Hoy</h3><p>S/ {{ total_hoy }}</p></div>
+        </div>
+
+        <h2 style="font-size: 1rem; color: #5f6368; margin-bottom: 10px;">💰 Mi Crecimiento Real (Ya cobrado)</h2>
+        <div class="resumen-grid">
+            <div class="card card-ganancia">
+                <h3>Ganancia Neta Real</h3>
+                <p style="color: #7b1fa2;">S/ {{ ganancias_reales }}</p>
+                <small style="color: #9c27b0; font-size: 0.7rem;">Intereses de préstamos finalizados</small>
+            </div>
+            <div class="card card-historico" style="grid-column: span 2;">
+                <h3>Total Recaudado Histórico</h3>
+                <p style="color: #e64a19;">S/ {{ total_recaudado_historico }}</p>
+                <small style="color: #ff5722; font-size: 0.7rem;">Suma total de todos los pagos recibidos</small>
+            </div>
         </div>
 
         <div class="acciones-rapidas">
@@ -54,7 +73,7 @@
         </div>
 
         <div class="tabla-contenedor">
-            <div class="tabla-header"><strong>Cobros Recientes</strong></div>
+            <div class="tabla-header"><strong>Cobros Recientes (Hoy)</strong></div>
             <div class="tabla-scroll">
                 <table>
                     <thead><tr><th>Cliente</th><th>Monto</th><th>Hora</th></tr></thead>
