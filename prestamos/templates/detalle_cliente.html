@@ -50,22 +50,21 @@
             </div>
 
             <div class="pago-lista">
-                {% comment %} Variable para saber si encontramos pagos {% endcomment %}
-                {% reversed for pago in pagos %}
-                    {% if pago.prestamo.id == p.id %}
-                        <div class="pago-item">
-                            <div>
-                                <span class="fecha-pago">{{ pago.fecha_pago|date:"d M, Y" }}</span>
-                                <span class="hora-pago">{{ pago.fecha_pago|date:"H:i" }}</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <strong style="color: #34a853; font-size: 1.1rem;">+ S/ {{ pago.monto_pagado }}</strong>
-                                <a href="{% url 'eliminar_pago' pago.id %}" onclick="return confirm('¿Borrar pago?')" style="text-decoration: none;">🗑️</a>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
+    {% for pago in pagos reversed %}
+        {% if pago.prestamo.id == p.id %}
+            <div class="pago-item">
+                <div>
+                    <span class="fecha-pago">{{ pago.fecha_pago|date:"d M, Y" }}</span>
+                    <span class="hora-pago">{{ pago.fecha_pago|date:"H:i" }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <strong style="color: #34a853; font-size: 1.1rem;">+ S/ {{ pago.monto_pagado }}</strong>
+                    <a href="{% url 'eliminar_pago' pago.id %}" onclick="return confirm('¿Borrar pago?')" style="text-decoration: none;">🗑️</a>
+                </div>
             </div>
+        {% endif %}
+    {% endfor %}
+</div>
         </div>
         {% empty %}
         <p style="text-align:center; color: #999;">No hay préstamos.</p>
